@@ -104,8 +104,8 @@ protected:
 		if (ch == KEY_DOWN) move_down();
 		if (ch == KEY_PPAGE) page_up();
 		if (ch == KEY_NPAGE) page_down();
-		if (ch == KEY_HOME) end();
-		if (ch == KEY_END) start();
+		if (ch == KEY_HOME) start();
+		if (ch == KEY_END) end();
 
 		if (_state == TYPE_MATCH) {
 			if (ch == 27) {
