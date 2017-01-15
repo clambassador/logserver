@@ -16,22 +16,22 @@ public:
 	LineFilterKeyword(const LogLines& log_lines,
 			  AbstractLineFilter* next)
 		: LineFilterCompose(next), _log_lines(log_lines) {
-		update();
+		reset();
 	}
 	virtual ~LineFilterKeyword() {}
 	virtual void set_keyword(const string& keyword) {
 		_keyword = keyword;
-		update();
+		reset();
 	}
 	virtual void add_keyletter(const char& ch) {
 		_keyword += ch;
-		update();
+		reset();
 	}
 
 	virtual void pop_keyletter() {
 		if (!_keyword.length()) return;
 		_keyword = _keyword.substr(0, _keyword.length() - 1);
-		update();
+		reset();
 	}
 
 	virtual string get_keyword() {
@@ -39,19 +39,24 @@ public:
 	}
 
 	virtual void filter_lines(LineFilterResult *lfr) {
+		update();
 		lfr->intersect(_lines);
 		LineFilterCompose::filter_lines(lfr);
 	}
 
 protected:
-
 	virtual void update() {
+		_start = _log_lines.match(_keyword, &_lines, _start);
+	}
+
+	virtual void reset() {
 		_lines.clear();
-		_log_lines.match(_keyword, &_lines);
+		_start = _log_lines.match(_keyword, &_lines);
 	}
 	string _keyword;
 	set<size_t> _lines;
 	const LogLines& _log_lines;
+	size_t _start;
 
 };
 
