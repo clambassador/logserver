@@ -18,7 +18,6 @@ public:
 	Interface(LogLines* ll) : _exit(false), _state(0) {
 		_ll = ll;
 		_fr.reset(new FilterRunner(_ll));
-		_cur = 0;
 		_state = COMMAND;
 		_colour = 1;
 		freopen("/dev/tty", "rw", stdin);
@@ -68,8 +67,7 @@ protected:
 		unique_lock<mutex> ul(_m);
 		vector<FormatString> lines;
 		lines.clear();
-		_fr->render(&lines, &_navi, _cur, RADIUS);
-		set_cur(_navi.cur());
+		_fr->render(&lines, &_navi, RADIUS);
 		clear();
 		for (size_t i = 0; i < lines.size(); ++i) {
 			draw(i + 1, 0, lines[i]);
@@ -115,12 +113,12 @@ protected:
 	virtual void process(int ch) {
 		unique_lock<mutex> ul(_m);
 		//printf("  state: %d key %d  ", _state, ch);
-		if (ch == KEY_UP) move_up();
-		if (ch == KEY_DOWN) move_down();
-		if (ch == KEY_PPAGE) page_up();
-		if (ch == KEY_NPAGE) page_down();
-		if (ch == KEY_HOME) start();
-		if (ch == KEY_END) end();
+		if (ch == KEY_UP) _navi.up();
+		if (ch == KEY_DOWN) _navi.down();
+		if (ch == KEY_PPAGE) _navi.page_up();
+		if (ch == KEY_NPAGE) _navi.page_down();
+		if (ch == KEY_HOME) _navi.start();
+		if (ch == KEY_END) _navi.end();
 
 		if (_state == TYPE_MATCH) {
 			if (ch == 27) {
@@ -136,15 +134,12 @@ protected:
 			if (ch == KEY_BACKSPACE) pop_keyword();
 			if (ch == 'q') _exit = true;
 			if (ch == '/') start_match();
-			if (ch == 'G') end();
-			if (ch == 'T') start();
+			if (ch == 'G') _navi.end();
+			if (ch == 'T') _navi.start();
 			//if (ch == '#') select();
 			//if (ch == '!') start_comment();
 		}
 	}
-
-	virtual void start() { _cur = 0; }
-	virtual void end() { _cur = _N - 1; }
 
 	virtual void toggle_mode() {
 		_fr->toggle_mode();
@@ -200,25 +195,6 @@ protected:
 		_fr->start_match();
 	}
 
-	/* TODO: move cur to navi, and keep it there only */
-	virtual void move_up() {
-		set_cur(_navi.up());
-	}
-	virtual void move_down() {
-		set_cur(_navi.down());
-	}
-	virtual void page_up() {
-		set_cur(_navi.page_up());
-	}
-	virtual void page_down() {
-		set_cur(_navi.page_down());
-	}
-
-	virtual void set_cur(size_t pos) {
-		if (pos == -1) return;
-		_cur = pos;
-	}
-
 	int _colour;
 	map<string, int> _keyword_to_colour;
 	bool _exit;
@@ -226,7 +202,6 @@ protected:
 	const int COMMAND = 0;
 	const int TYPE_MATCH = 1;
 	const int PAGE = 20;
-	size_t _cur;
 	const size_t RADIUS = 20;
 	const size_t STATUS_LINE = 2 * RADIUS + 3;
 	size_t _N;

@@ -24,7 +24,6 @@ public:
 
 	virtual void render(vector<FormatString>* output,
 			    Navigation *navi,
-			    size_t center,
 			    size_t radius) {
 		_ll->lock();
 
@@ -36,7 +35,8 @@ public:
 
 		vector<size_t> lines;
 		vector<string> data;
-		lfr.build_display(&lines, center, radius);
+
+		lfr.build_display(&lines, navi->cur(), radius);
 		_ll->get_lines(lines, &data);
 		navi->set_view(lines);
 
