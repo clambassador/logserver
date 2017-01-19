@@ -35,11 +35,13 @@ public:
 	}
 
 	virtual ~Interface() {
+		_exit = true;
 		endwin();
 	}
 
 	virtual void run() {
 		string s;
+		thread refresh(&Interface::redraw, this);
 		while (!_exit) {
 			draw();
 			_N = _ll->length();
@@ -49,9 +51,21 @@ public:
 
 			process(ch);
 		}
+		refresh.join();
 	}
+
 protected:
+	virtual void redraw() {
+		while (!_exit) {
+			this_thread::sleep_for(chrono::milliseconds(100));
+			if (_ll->dirty()) {
+				draw();
+			}
+		}
+	}
+
 	virtual void draw() {
+		unique_lock<mutex> ul(_m);
 		vector<FormatString> lines;
 		lines.clear();
 		_fr->render(&lines, &_navi, _cur, RADIUS);
@@ -99,6 +113,7 @@ protected:
 	}
 
 	virtual void process(int ch) {
+		unique_lock<mutex> ul(_m);
 		//printf("  state: %d key %d  ", _state, ch);
 		if (ch == KEY_UP) move_up();
 		if (ch == KEY_DOWN) move_down();
@@ -218,6 +233,7 @@ protected:
 	LogLines* _ll;
 	unique_ptr<FilterRunner> _fr;
 	Navigation _navi;
+	mutex _m;
 };
 
 #endif  //  __INTERFACE__H__

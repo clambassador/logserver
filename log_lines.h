@@ -14,17 +14,18 @@ using namespace std;
 
 class LogLines {
 public:
-	 LogLines(istream& in) : _in(in.rdbuf()), _exit(false) {
+	 LogLines(istream& in) : _in(in.rdbuf()), _exit(false), _dirty(false) {
 		 _reader_thread.reset(new thread(&LogLines::reader, this));
 	 }
 
-	 LogLines(int fd) : _in(cin.rdbuf()),  _fd(fd), _exit(false) {
+	 LogLines(int fd) : _in(cin.rdbuf()),  _fd(fd), _exit(false),
+			    _dirty(false) {
 		 _reader_thread.reset(new thread(&LogLines::reader, this));
 	 }
 
 	 LogLines(const string& filename)
 			: _in(cin.rdbuf()), _filename(filename),
-			  _exit(false) {
+			  _exit(false), _dirty(false) {
 		 _reader_thread.reset(new thread(&LogLines::reader, this));
 	 }
 
@@ -37,6 +38,7 @@ public:
 		 unique_lock<mutex> ul(_m);
 
 		 _lines.push_back(line);
+		 _dirty = true;
 	 }
 
 	 virtual void lock() {
@@ -82,6 +84,15 @@ public:
 
 	 virtual size_t length() const {
 		 return _lines.size();
+	 }
+
+	 virtual bool dirty() {
+		 unique_lock<mutex> ul(_m);
+		 if (_dirty) {
+			 _dirty = false;
+			 return true;
+		 }
+		 return false;
 	 }
 
 protected:
@@ -131,6 +142,7 @@ protected:
 	vector<string> _lines;
 	mutex _m;
 	bool _exit;
+	bool _dirty;
 };
 
 #endif  // __LOGLINES__H__

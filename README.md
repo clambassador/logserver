@@ -31,7 +31,6 @@ Features to Add
 . force linewidth with breaks
 . show two files and synchronize timestamps when navigating
 . change highlighting colours
-. read file from stdin while getting commands from keyboard
 . commands to insert lines into the log, such as markers indicating the point
 before doing something that should produce output
 . save files systematically
