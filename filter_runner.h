@@ -32,15 +32,17 @@ public:
 			_keywords.front()->filter_lines(&lfr);
 			_add_context.front()->filter_lines(&lfr);
 		}
+		lfr.insert(_pins);
 
 		vector<size_t> lines;
 		vector<string> data;
 
 		lfr.build_display(&lines, navi->cur(), radius);
 		_ll->get_lines(lines, &data);
-		navi->set_view(lines);
+		navi->set_view(lines, data);
 
 		set_formatting(lines, data, output);
+		set_line_position(output, navi->tab());
 
 		_ll->unlock();
 	}
@@ -85,7 +87,17 @@ public:
 		_filter_keywords = !_filter_keywords;
 	}
 
+	virtual void pin(size_t pos) {
+		_pins.insert(pos);
+	}
+
 protected:
+	virtual void set_line_position(vector<FormatString>* output, size_t tab) {
+		for (auto &x : *output) {
+			x.set_start(tab);
+		}
+	}
+
 	virtual void set_formatting(const vector<size_t>& pos,
 				    const vector<string>& data,
 				    vector<FormatString>* output) {
@@ -97,6 +109,7 @@ protected:
 			if (i == (pos.size() - 1) / 2) {
 				fs.highlight();
 			}
+			fs.colour_function();
 			output->push_back(fs);
 		}
 	}
@@ -120,6 +133,7 @@ protected:
 	list<unique_ptr<AbstractLineFilter>> _keywords;
 	vector<string> _keyword_vals;
 	list<unique_ptr<AbstractLineFilter>> _add_context;
+	set<size_t> _pins;
 	bool _filter_keywords = true;
 	LogLines* _ll;
 };

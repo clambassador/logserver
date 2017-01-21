@@ -57,10 +57,18 @@ protected:
 	virtual void redraw() {
 		while (!_exit) {
 			this_thread::sleep_for(chrono::milliseconds(100));
-			if (_ll->dirty()) {
+			if (should_redraw()) {
 				draw();
 			}
 		}
+	}
+
+	virtual bool should_redraw() {
+		unique_lock<mutex> ul(_m);
+		if (_navi.near_end(_N, RADIUS) && _ll->dirty()) {
+			return true;
+		}
+		return false;
 	}
 
 	virtual void draw() {
@@ -99,6 +107,9 @@ protected:
 		} else if (_state == TYPE_MATCH) {
 			ss << "> ";
 			ss << _fr->current_keyword();
+		} else if (_state == TYPE_COMMENT) {
+			ss << "[enter comment] ";
+			ss << _comment;
 		}
 		fs.add(ss.str(), 0);
 		ss.str(string());
@@ -115,10 +126,12 @@ protected:
 		//printf("  state: %d key %d  ", _state, ch);
 		if (ch == KEY_UP) _navi.up();
 		if (ch == KEY_DOWN) _navi.down();
+		if (ch == KEY_LEFT) _navi.left();
+		if (ch == KEY_RIGHT) _navi.right();
 		if (ch == KEY_PPAGE) _navi.page_up();
 		if (ch == KEY_NPAGE) _navi.page_down();
-		if (ch == KEY_HOME) _navi.start();
-		if (ch == KEY_END) _navi.end();
+		if (ch == KEY_HOME) _navi.line_start();
+		if (ch == KEY_END) _navi.line_end();
 
 		if (_state == TYPE_MATCH) {
 			if (ch == 27) {
@@ -129,6 +142,14 @@ protected:
 			if (ch == '\n') finish_type();
 			if (ch == KEY_BACKSPACE) pop_char();
 			if (ch > 0 && ch < 256 && isprint(ch)) push_char(ch);
+		} else if (_state == TYPE_COMMENT) {
+			if (ch == 27) {
+				finish_comment(false);
+			}
+			if (ch == KEY_ENTER) finish_comment(true);
+			if (ch == '\n') finish_comment(true);
+			if (ch == KEY_BACKSPACE) pop_char();
+			if (ch > 0 && ch < 256 && isprint(ch)) push_char(ch);
 		} else if (_state == COMMAND) {
 			if (ch == '\t') toggle_mode();
 			if (ch == KEY_BACKSPACE) pop_keyword();
@@ -136,8 +157,8 @@ protected:
 			if (ch == '/') start_match();
 			if (ch == 'G') _navi.end();
 			if (ch == 'T') _navi.start();
-			//if (ch == '#') select();
-			//if (ch == '!') start_comment();
+			if (ch == '#') start_comment();
+			if (ch == '!') add_dash_line();
 		}
 	}
 
@@ -167,13 +188,39 @@ protected:
 	virtual void push_char(char ch) {
 		if (_state == TYPE_MATCH) {
 			_fr->push_char(ch);
+		} else if (_state == TYPE_COMMENT) {
+			_comment += ch;
 		}
+	}
+
+	virtual void add_dash_line() {
+		size_t pos = _ll->add_line(
+		    "---------------------------------------------");
+		_fr->pin(pos);
+	}
+
+	virtual void start_comment() {
+		_state = TYPE_COMMENT;
+	}
+
+	virtual void finish_comment(bool save) {
+		_state = COMMAND;
+		if (save) {
+			_fr->pin(_ll->add_line("# \t" + _comment));
+		}
+		_comment = "";
 	}
 
 	virtual void pop_char() {
 		if (_state == TYPE_MATCH) {
 			if (!_fr->pop_char())
 				finish_type();
+		}
+		if (_state == TYPE_COMMENT) {
+			if (!_comment.empty()) {
+				_comment = _comment.substr(
+				    0, _comment.length() - 1);
+			}
 		}
 	}
 
@@ -201,10 +248,12 @@ protected:
 	int _state;
 	const int COMMAND = 0;
 	const int TYPE_MATCH = 1;
+	const int TYPE_COMMENT = 2;
 	const int PAGE = 20;
 	const size_t RADIUS = 20;
 	const size_t STATUS_LINE = 2 * RADIUS + 3;
 	size_t _N;
+	string _comment;
 	LogLines* _ll;
 	unique_ptr<FilterRunner> _fr;
 	Navigation _navi;

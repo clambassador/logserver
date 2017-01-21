@@ -23,6 +23,34 @@ public:
 		}
 	}
 
+	virtual void colour_function() {
+		for (size_t i = 1; i < length(); ++i) {
+			if (at(i) == ')' && at(i - 1) == '(') {
+				size_t j;
+				for (j = i - 2; j < length(); --j) {
+					if (white_at(j)) break;
+				}
+				if (j >= length()) j = 0;
+				mark(FUNCTION_COLOUR, j, i + 1 - j);
+			}
+		}
+	}
+	virtual void set_start(size_t pos) {
+		assert(_fmt.size() == length());
+		if (length() < pos) {
+			_fmt.clear();
+			assign("");
+			return;
+		}
+
+		for (size_t i = pos; i < _fmt.size(); ++i) {
+			_fmt[i - pos] = _fmt[i];
+		}
+		_fmt.resize(_fmt.size() - pos);
+		assign(substr(pos));
+		assert(_fmt.size() == length());
+	}
+
 	virtual void mark(int code, const string& keyword) {
 		string lowerkeyword, lowerline, line;
 		line.assign(static_cast<string>(*this));
@@ -59,11 +87,20 @@ public:
 	}
 
 protected:
+	virtual bool white_at(size_t i) const {
+		assert(i < length());
+		if (at(i) == ' ' || at(i) == '\t' || at(i) == '\n') return true;
+		return false;
+	}
+
 	virtual void mark(int code, size_t pos, size_t len) {
 		for (size_t i = pos; i < pos + len; ++i) {
-			_fmt[i] = code;
+			if (_fmt[i] == 0)
+				_fmt[i] = code;
 		}
 	}
+
+	const int FUNCTION_COLOUR = 4;
 
 	vector<int> _fmt;
 };

@@ -34,11 +34,12 @@ public:
 		 _reader_thread->join();
 	 }
 
-	 virtual void add_line(const string& line) {
+	 virtual size_t add_line(const string& line) {
 		 unique_lock<mutex> ul(_m);
 
 		 _lines.push_back(line);
 		 _dirty = true;
+		 return _lines.size() - 1;
 	 }
 
 	 virtual void lock() {

@@ -9,13 +9,18 @@ Commands
 To navigate:
 . T top
 . G bottom
-. up/down/pageup/pagedown/home/end as expected
+. up/down/pageup/pagedown for line moving
+. home/end for moving to start / end of current line
 
 To search:
 . / enter search mode. type the search phrase and hit enter
 
 To delete last search:
 . backspace
+
+To mark:
+. ! insert a line of hyphens
+. # enter comment mode. type a comment and hit enter to add to text
 
 Each search keyword is coloured and searches can be combined together.
 
@@ -31,6 +36,4 @@ Features to Add
 . force linewidth with breaks
 . show two files and synchronize timestamps when navigating
 . change highlighting colours
-. commands to insert lines into the log, such as markers indicating the point
-before doing something that should produce output
 . save files systematically
