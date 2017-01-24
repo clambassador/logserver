@@ -20,6 +20,7 @@ public:
 		_fr.reset(new FilterRunner(_ll));
 		_state = COMMAND;
 		_colour = 1;
+		_start = 2;
 		freopen("/dev/tty", "rw", stdin);
 		initscr();
 		assert(has_colors());
@@ -48,6 +49,10 @@ public:
 			int ch;
 			ch = getch();
 
+			/* to see key names uncomment
+			_ll->add_line(keyname(ch));
+			*/
+
 			process(ch);
 		}
 		refresh.join();
@@ -65,6 +70,11 @@ protected:
 
 	virtual bool should_redraw() {
 		unique_lock<mutex> ul(_m);
+		if (_start) {
+			--_start;
+			_ll->dirty();
+			return true;
+		}
 		if (_navi.near_end(_N, RADIUS) && _ll->dirty()) {
 			return true;
 		}
@@ -103,7 +113,8 @@ protected:
 		stringstream ss;
 		FormatString fs;
 		if (_state == COMMAND) {
-			ss << "[COMMAND]                    \tkeywords: ";
+			ss << "[COMMAND]                    \t"
+			   << _fr->mode_string() << "  keywords: ";
 		} else if (_state == TYPE_MATCH) {
 			ss << "> ";
 			ss << _fr->current_keyword();
@@ -130,8 +141,10 @@ protected:
 		if (ch == KEY_RIGHT) _navi.right();
 		if (ch == KEY_PPAGE) _navi.page_up();
 		if (ch == KEY_NPAGE) _navi.page_down();
-		if (ch == KEY_HOME) _navi.line_start();
-		if (ch == KEY_END) _navi.line_end();
+		if (ch == KEY_HOME) _navi.start();
+		if (ch == KEY_END) _navi.end();
+		if (ch == KEY_SHOME) _navi.line_start();
+		if (ch == KEY_SEND) _navi.line_end();
 
 		if (_state == TYPE_MATCH) {
 			if (ch == 27) {
@@ -246,6 +259,7 @@ protected:
 	map<string, int> _keyword_to_colour;
 	bool _exit;
 	int _state;
+	int _start;
 	const int COMMAND = 0;
 	const int TYPE_MATCH = 1;
 	const int TYPE_COMMENT = 2;

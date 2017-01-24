@@ -8,6 +8,7 @@ public:
 			_lines.insert(_lines.end(), i);
 		}
 		_total = total;
+		_is_conjunction = true;
 	}
 
 	~LineFilterResult() {
@@ -18,6 +19,8 @@ public:
 	}
 
 	virtual void intersect(const set<size_t>& to_restrict) {
+		if (!_is_conjunction) return insert(to_restrict);
+
 		set<size_t> result;
 		for (auto &x : to_restrict) {
 			if (_lines.count(x)) result.insert(x);
@@ -32,6 +35,15 @@ public:
 			if (x < _total - 1) to_add.insert(x + 1);
 		}
 		insert(to_add);
+	}
+
+	virtual void set_mode_disjunction() {
+		_is_conjunction = false;
+		clear();
+	}
+
+	virtual void clear() {
+		_lines.clear();
 	}
 
 	virtual void build_display(vector<size_t>* output,
@@ -59,6 +71,7 @@ public:
 protected:
 	set<size_t> _lines;
 	size_t _total;
+	bool _is_conjunction;
 };
 
 #endif  // __LINE_FILTER_RESULT__H__

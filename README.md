@@ -7,10 +7,10 @@ Commands
 --------
 
 To navigate:
-. T top
-. G bottom
+. home/T top
+. end/G bottom
 . up/down/pageup/pagedown for line moving
-. home/end for moving to start / end of current line
+. shift+home/shift+end for moving to start / end of current line
 
 To search:
 . / enter search mode. type the search phrase and hit enter
@@ -37,3 +37,5 @@ Features to Add
 . show two files and synchronize timestamps when navigating
 . change highlighting colours
 . save files systematically
+. with piped inputs, the reader thread should timeout while reading to check if
+the program is quitting.

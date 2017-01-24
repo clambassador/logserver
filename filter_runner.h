@@ -28,7 +28,10 @@ public:
 		_ll->lock();
 
 		LineFilterResult lfr(_ll->length());
-		if (_filter_keywords) {
+		if (_filter_keywords != FILTER_NONE) {
+			if (_filter_keywords == FILTER_OR) {
+				lfr.set_mode_disjunction();
+			}
 			_keywords.front()->filter_lines(&lfr);
 			_add_context.front()->filter_lines(&lfr);
 		}
@@ -76,6 +79,8 @@ public:
 
 		_keywords.push_front(nullptr);
 		_keywords.front().reset(_current_keyword);
+		if (_filter_keywords == FILTER_NONE)
+			set_mode_disjunction();
 	}
 
 	virtual string current_keyword() {
@@ -84,11 +89,34 @@ public:
 	}
 
 	virtual void toggle_mode() {
-		_filter_keywords = !_filter_keywords;
+		++_filter_keywords;
+		_filter_keywords %= 3;
+	}
+
+	virtual void set_mode_none() {
+		_filter_keywords = FILTER_NONE;
+	}
+
+	virtual void set_mode_conjunction() {
+		_filter_keywords = FILTER_AND;
+	}
+
+	virtual void set_mode_disjunction() {
+		_filter_keywords = FILTER_OR;
 	}
 
 	virtual void pin(size_t pos) {
 		_pins.insert(pos);
+	}
+
+	virtual string mode_string() const {
+		if (_filter_keywords == FILTER_NONE)
+			return "ALL";
+		if (_filter_keywords == FILTER_AND)
+			return "AND";
+		if (_filter_keywords == FILTER_OR)
+			return " OR";
+		return "NO SUCH MODE";
 	}
 
 protected:
@@ -134,8 +162,12 @@ protected:
 	vector<string> _keyword_vals;
 	list<unique_ptr<AbstractLineFilter>> _add_context;
 	set<size_t> _pins;
-	bool _filter_keywords = true;
+	int _filter_keywords = 0;
 	LogLines* _ll;
+
+	const int FILTER_AND = 0;
+	const int FILTER_OR = 1;
+	const int FILTER_NONE = 2;
 };
 
 #endif  // __FILTER_RUNNER__H__

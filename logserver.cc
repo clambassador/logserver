@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <unistd.h>
+#include <csignal>
 
 #include "log_lines.h"
 #include "interface.h"
@@ -15,17 +16,21 @@ using namespace std;
 int main(int argc, char** argv) {
 	unique_ptr<LogLines> ll;
 	ifstream fin;
+	pid_t pid = 0;
+
 	if (argc == 2) {
 		fin.open(argv[1]);
 		ll.reset(new LogLines(fin));
 	} else {
 		int pipe_ends[2];
 		pipe(pipe_ends);
-		pid_t pid = fork();
+		pid = fork();
 		if (pid == -1) throw string("fork(): failed");
 		if (pid == 0) {
 			close(pipe_ends[0]);
 			string line;
+			setpgid(0, 0);
+			signal(SIGTERM, exit);
 			while (true) {
 				int c = fgetc(stdin);
 				if (c == EOF) {
@@ -45,5 +50,6 @@ int main(int argc, char** argv) {
 	}
 	Interface interface(ll.get());
 	interface.run();
+	if (pid > 0) kill(pid, SIGABRT);
 	return 0;
 }
