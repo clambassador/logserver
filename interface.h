@@ -25,10 +25,27 @@ public:
 		initscr();
 		assert(has_colors());
 		start_color();
+		init_pair(0, COLOR_WHITE, COLOR_BLACK);
 		init_pair(1, COLOR_RED, COLOR_BLACK);
 		init_pair(2, COLOR_BLUE, COLOR_BLACK);
 		init_pair(3, COLOR_GREEN, COLOR_BLACK);
 		init_pair(4, COLOR_MAGENTA, COLOR_BLACK);
+		init_pair(5, COLOR_CYAN, COLOR_BLACK);
+		init_pair(6, COLOR_YELLOW, COLOR_BLACK);
+		init_pair(10, COLOR_BLACK, COLOR_WHITE);
+		init_pair(11, COLOR_BLACK, COLOR_RED);
+		init_pair(12, COLOR_BLACK, COLOR_BLUE);
+		init_pair(13, COLOR_BLACK, COLOR_GREEN);
+		init_pair(14, COLOR_BLACK, COLOR_MAGENTA);
+		init_pair(15, COLOR_BLACK, COLOR_CYAN);
+		init_pair(16, COLOR_BLACK, COLOR_MAGENTA);
+		init_pair(100, COLOR_BLACK, COLOR_WHITE);
+		init_pair(101, COLOR_RED, COLOR_WHITE);
+		init_pair(102, COLOR_BLUE, COLOR_WHITE);
+		init_pair(103, COLOR_GREEN, COLOR_WHITE);
+		init_pair(104, COLOR_MAGENTA, COLOR_WHITE);
+		init_pair(105, COLOR_CYAN, COLOR_WHITE);
+		init_pair(106, COLOR_YELLOW, COLOR_WHITE);
 		keypad(stdscr, true);
 		noecho();
 		cbreak();
@@ -114,7 +131,9 @@ protected:
 		FormatString fs;
 		if (_state == COMMAND) {
 			ss << "[COMMAND]                    \t"
-			   << _fr->mode_string() << "  keywords: ";
+			   << _fr->mode_string() << "  "
+			   << _fr->length() << " lines.  "
+			   << "   keywords: ";
 		} else if (_state == TYPE_MATCH) {
 			ss << "> ";
 			ss << _fr->current_keyword();

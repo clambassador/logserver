@@ -18,6 +18,7 @@ public:
 		_add_context.push_back(nullptr);
 		_add_context.back().reset(new LineFilterTerminus());
 		_current_keyword = nullptr;
+		_total_lines = 0;
 	}
 
 	virtual ~FilterRunner() {}
@@ -40,6 +41,8 @@ public:
 		vector<size_t> lines;
 		vector<string> data;
 
+		_total_lines = lfr.length();
+
 		lfr.build_display(&lines, navi->cur(), radius);
 		_ll->get_lines(lines, &data);
 		navi->set_view(lines, data);
@@ -48,6 +51,10 @@ public:
 		set_line_position(output, navi->tab());
 
 		_ll->unlock();
+	}
+
+	virtual size_t length() const {
+		return _total_lines;
 	}
 
 	virtual void finish_match() {
@@ -134,10 +141,10 @@ protected:
 			FormatString fs;
 			fs.init(data[i]);
 			set_formatting(pos[i], data[i], &fs);
+			fs.colour_function();
 			if (i == (pos.size() - 1) / 2) {
 				fs.highlight();
 			}
-			fs.colour_function();
 			output->push_back(fs);
 		}
 	}
@@ -164,6 +171,7 @@ protected:
 	set<size_t> _pins;
 	int _filter_keywords = 0;
 	LogLines* _ll;
+	size_t _total_lines;
 
 	const int FILTER_AND = 0;
 	const int FILTER_OR = 1;

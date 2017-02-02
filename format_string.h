@@ -21,9 +21,24 @@ public:
 		for (size_t i = 0; i < length(); ++i) {
 			_fmt[i] += 100;
 		}
+		if (length()) _fmt[0] = 10;
 	}
 
 	virtual void colour_function() {
+		for (size_t i = 1; i < length(); ++i) {
+			if (at(i) == ':') {
+				size_t j;
+				for (j = i + 1; j < length(); ++j) {
+					if (at(j) == ':') goto cont;
+				}
+				for (j = i; j < length(); --j) {
+					if (white_at(j)) break;
+				}
+				if (j >= length()) j = 0;
+				if (j + 1 < i) mark(COLON_COLOUR, j, i + 1 - j);
+			}
+cont:;
+		}
 		for (size_t i = 1; i < length(); ++i) {
 			if (at(i) == ')' && at(i - 1) == '(') {
 				size_t j;
@@ -35,6 +50,7 @@ public:
 			}
 		}
 	}
+
 	virtual void set_start(size_t pos) {
 		assert(_fmt.size() == length());
 		if (length() < pos) {
@@ -100,7 +116,8 @@ protected:
 		}
 	}
 
-	const int FUNCTION_COLOUR = 4;
+	const int COLON_COLOUR = 5;
+	const int FUNCTION_COLOUR = 6;
 
 	vector<int> _fmt;
 };

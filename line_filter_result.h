@@ -68,6 +68,10 @@ public:
 		}
 	}
 
+	virtual size_t length() const {
+		return _lines.size();
+	}
+
 protected:
 	set<size_t> _lines;
 	size_t _total;

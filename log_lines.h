@@ -72,10 +72,10 @@ public:
 		 for (const auto &x : lines) {
 			 stringstream ss;
 			 if (x != (size_t) -1)
-				ss << x << "\t";
+				ss << " " << x << "\t";
 			 ss << '\t';
 			 if (x == -1) {
-				 ss << "~";
+				 ss << " ~";
 			 } else {
 				 ss << _lines[x];
 			 }
