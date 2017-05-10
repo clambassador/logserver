@@ -78,11 +78,12 @@ public:
 		if (_keyword_vals.empty()) return;
 		_keyword_vals.pop_back();
 		_keywords.pop_front();
+		if (empty()) set_mode_none();
 	}
 
-	virtual void start_match() {
+	virtual void start_match(bool not_inverted) {
 		_current_keyword = new LineFilterKeyword(
-		    *_ll, _keywords.front().get());
+		    *_ll, not_inverted, _keywords.front().get());
 
 		_keywords.push_front(nullptr);
 		_keywords.front().reset(_current_keyword);
@@ -96,8 +97,12 @@ public:
 	}
 
 	virtual void toggle_mode() {
+		if (_keywords.size() == 1) {
+			_filter_keywords = FILTER_NONE;
+			return;
+		}
 		++_filter_keywords;
-		_filter_keywords %= 3;
+		_filter_keywords %= empty() ? 2 : 3;
 	}
 
 	virtual void set_mode_none() {
@@ -119,6 +124,8 @@ public:
 	virtual string mode_string() const {
 		if (_filter_keywords == FILTER_NONE)
 			return "ALL";
+		if (_keywords.size() == 1)
+			return "MATCH";
 		if (_filter_keywords == FILTER_AND)
 			return "AND";
 		if (_filter_keywords == FILTER_OR)
@@ -164,6 +171,10 @@ protected:
 		}
 	}
 
+	virtual bool empty() const {
+		return _keywords.size() == 1;
+	}
+
 	LineFilterKeyword *_current_keyword;
 	list<unique_ptr<AbstractLineFilter>> _keywords;
 	vector<string> _keyword_vals;
@@ -173,9 +184,9 @@ protected:
 	LogLines* _ll;
 	size_t _total_lines;
 
-	const int FILTER_AND = 0;
-	const int FILTER_OR = 1;
-	const int FILTER_NONE = 2;
+	const int FILTER_AND = 1;
+	const int FILTER_OR = 2;
+	const int FILTER_NONE = 0;
 };
 
 #endif  // __FILTER_RUNNER__H__

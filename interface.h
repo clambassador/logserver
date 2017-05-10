@@ -186,11 +186,13 @@ protected:
 			if (ch == '\t') toggle_mode();
 			if (ch == KEY_BACKSPACE) pop_keyword();
 			if (ch == 'q') _exit = true;
-			if (ch == '/') start_match();
+			if (ch == '/') start_match(true);
 			if (ch == 'G') _navi.end();
 			if (ch == 'T') _navi.start();
 			if (ch == '#') start_comment();
 			if (ch == '!') add_dash_line();
+			if (ch == 'S') _ll->save();
+			if (ch == '\\') start_match(false);
 		}
 	}
 
@@ -269,9 +271,9 @@ protected:
 		_keyword_to_colour.erase(keyword);
 	}
 
-	virtual void start_match() {
+	virtual void start_match(bool not_inverted) {
 		_state = TYPE_MATCH;
-		_fr->start_match();
+		_fr->start_match(not_inverted);
 	}
 
 	int _colour;

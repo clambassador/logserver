@@ -14,8 +14,10 @@ using namespace std;
 class LineFilterKeyword : public LineFilterCompose {
 public:
 	LineFilterKeyword(const LogLines& log_lines,
+			  bool not_inverted,
 			  AbstractLineFilter* next)
-		: LineFilterCompose(next), _log_lines(log_lines) {
+		: LineFilterCompose(next), _log_lines(log_lines),
+		  _not_inverted(not_inverted) {
 		reset();
 	}
 	virtual ~LineFilterKeyword() {}
@@ -34,7 +36,8 @@ public:
 		reset();
 	}
 
-	virtual string get_keyword() {
+	virtual string get_keyword() const {
+		if (!_not_inverted) return "!" + _keyword;
 		return _keyword;
 	}
 
@@ -46,18 +49,18 @@ public:
 
 protected:
 	virtual void update() {
-		_start = _log_lines.match(_keyword, &_lines, _start);
+		_start = _log_lines.match(_keyword, _not_inverted, &_lines, _start);
 	}
 
 	virtual void reset() {
 		_lines.clear();
-		_start = _log_lines.match(_keyword, &_lines);
+		_start = _log_lines.match(_keyword, _not_inverted, &_lines);
 	}
 	string _keyword;
 	set<size_t> _lines;
 	const LogLines& _log_lines;
 	size_t _start;
-
+	bool _not_inverted;
 };
 
 #endif  // __LINE_FILTER_KEYWORD__H__

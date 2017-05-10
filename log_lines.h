@@ -53,14 +53,16 @@ public:
 	 }
 
 	 virtual size_t match(const string& keyword,
+			      bool not_inverted,
 			      set<size_t>* lines) const {
-		 return match(keyword, lines, 0);
+		 return match(keyword, not_inverted, lines, 0);
 	 }
 	 virtual size_t match(const string& keyword,
+			      bool not_inverted,
 			      set<size_t>* lines,
 			      size_t start) const {
 		 for (size_t i = start; i < _lines.size(); ++i) {
-			if (match(keyword, _lines[i])) {
+			if (!not_inverted ^ match(keyword, _lines[i])) {
 				lines->insert(i);
 			}
 		 }
@@ -95,6 +97,13 @@ public:
 		 }
 		 return false;
 	 }
+
+	virtual void save() const {
+		 ofstream fout("/tmp/logserver_save");
+		 for (const auto &x : _lines) {
+			 fout << x;
+		 }
+	}
 
 protected:
 
