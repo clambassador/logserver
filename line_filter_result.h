@@ -22,10 +22,10 @@ public:
 		if (!_is_conjunction) return insert(to_restrict);
 
 		set<size_t> result;
-		for (auto &x : to_restrict) {
-			if (_lines.count(x)) result.insert(x);
-		}
-		_lines = result;
+		set_intersection(to_restrict.begin(), to_restrict.end(),
+				 _lines.begin(), _lines.end(),
+				 inserter(result, result.end()));
+		_lines = move(result);
 	}
 
 	virtual void add_context() {
@@ -70,6 +70,12 @@ public:
 
 	virtual size_t length() const {
 		return _lines.size();
+	}
+
+	virtual void lines(vector<size_t>* out) const {
+		for (const auto &x : _lines) {
+			out->push_back(x);
+		}
 	}
 
 protected:

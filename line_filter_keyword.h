@@ -16,7 +16,7 @@ public:
 	LineFilterKeyword(const LogLines& log_lines,
 			  bool not_inverted,
 			  AbstractLineFilter* next)
-		: LineFilterCompose(next), _log_lines(log_lines),
+		: LineFilterCompose(next), _ll(log_lines),
 		  _not_inverted(not_inverted) {
 		reset();
 	}
@@ -27,7 +27,8 @@ public:
 	}
 	virtual void add_keyletter(const char& ch) {
 		_keyword += ch;
-		reset();
+		if (!_not_inverted) reset();
+		else filter();
 	}
 
 	virtual void pop_keyletter() {
@@ -49,16 +50,24 @@ public:
 
 protected:
 	virtual void update() {
-		_start = _log_lines.match(_keyword, _not_inverted, &_lines, _start);
+		assert(_ll.is_locked());
+		_start = _ll.match_locked(_keyword, _not_inverted, &_lines, _start);
 	}
 
 	virtual void reset() {
 		_lines.clear();
-		_start = _log_lines.match(_keyword, _not_inverted, &_lines);
+		filter();
+	}
+
+	virtual void filter() {
+		assert(!_ll.is_locked());
+		_ll.lock();
+		_start = _ll.match_locked(_keyword, _not_inverted, &_lines);
+		_ll.unlock();
 	}
 	string _keyword;
 	set<size_t> _lines;
-	const LogLines& _log_lines;
+	const LogLines& _ll;
 	size_t _start;
 	bool _not_inverted;
 };

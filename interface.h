@@ -77,11 +77,17 @@ public:
 
 protected:
 	virtual void redraw() {
+		int force = 50;
 		while (!_exit) {
 			this_thread::sleep_for(chrono::milliseconds(100));
 			if (should_redraw()) {
 				draw();
 			}
+			if (!(force--)) {
+				draw();
+				force = 50;
+			}
+
 		}
 	}
 
@@ -92,6 +98,12 @@ protected:
 			_ll->dirty();
 			return true;
 		}
+		if (_ll->really_dirty()) {
+			return true;
+		}
+		// BUG: redraw if near end of filter
+		//      this causes fast input to not redraw
+		//      
 		if (_navi.near_end(_N, RADIUS) && _ll->dirty()) {
 			return true;
 		}
@@ -101,7 +113,6 @@ protected:
 	virtual void draw() {
 		unique_lock<mutex> ul(_m);
 		vector<FormatString> lines;
-		lines.clear();
 		_fr->render(&lines, &_navi, RADIUS);
 		clear();
 		for (size_t i = 0; i < lines.size(); ++i) {
@@ -190,14 +201,28 @@ protected:
 			if (ch == 'G') _navi.end();
 			if (ch == 'T') _navi.start();
 			if (ch == '#') start_comment();
-			if (ch == '!') add_dash_line();
+			if (ch == '!') insert_dash_line();
+			if (ch == '-') add_dash_line();
+			if (ch == 'p') pin_line();
 			if (ch == 'S') _ll->save();
+			if (ch == 's') _ll->save_line(_navi.cur());
 			if (ch == '\\') start_match(false);
+			if (ch == '%') permafilter();
 		}
+	}
+
+	virtual void pin_line() {
+		if (_navi.at_end()) return;
+		_ll->new_pin(_navi.cur());
 	}
 
 	virtual void toggle_mode() {
 		_fr->toggle_mode();
+	}
+
+	virtual void permafilter() {
+		_ll->permafilter();
+
 	}
 
 	virtual void finish_type() {
@@ -228,9 +253,20 @@ protected:
 	}
 
 	virtual void add_dash_line() {
-		size_t pos = _ll->add_line(
-		    "---------------------------------------------");
-		_fr->pin(pos);
+		_ll->insert_line(
+		    "---------------------------------------------",
+		    _ll->length());
+	}
+
+	virtual void insert_dash_line() {
+		if (_navi.at_end()) {
+			add_dash_line();
+			return;
+		}
+		size_t pos = _navi.cur();
+		_ll->insert_line(
+		    "---------------------------------------------",
+		    pos);
 	}
 
 	virtual void start_comment() {
@@ -240,7 +276,14 @@ protected:
 	virtual void finish_comment(bool save) {
 		_state = COMMAND;
 		if (save) {
-			_fr->pin(_ll->add_line("# \t" + _comment));
+			string data = "# \t" + _comment;
+			if (_navi.at_end()) {
+				_ll->insert_line(data,
+						 _ll->length());
+			} else {
+				_ll->insert_line(data,
+						 _navi.cur());
+			}
 		}
 		_comment = "";
 	}

@@ -8,7 +8,7 @@ mains['logserver.cc'] = 'logserver'
 libs = Split("""ncurses
 	     pthread
 	     """)
-env = Environment(CXX="ccache clang++ -I.", CPPFLAGS="-D_FILE_OFFSET_BITS=64 -Wall -g --std=c++11 -pthread", LIBS=libs, CPPPATH=".")
+env = Environment(CXX="ccache clang++ -I. -pg", CPPFLAGS="-D_FILE_OFFSET_BITS=64 -Wall -g -pg --std=c++11 -pthread", LIBS=libs, CPPPATH=".")
 env['ENV']['TERM'] = 'xterm'
 
 Decider('MD5')

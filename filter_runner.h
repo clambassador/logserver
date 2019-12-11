@@ -28,23 +28,34 @@ public:
 			    size_t radius) {
 		_ll->lock();
 
-		LineFilterResult lfr(_ll->length());
+		LineFilterResult lfr(_ll->length_locked());
 		if (_filter_keywords != FILTER_NONE) {
-			if (_filter_keywords == FILTER_OR) {
-				lfr.set_mode_disjunction();
+			if (empty()) {
+				lfr.clear();
+			} else {
+				if (_filter_keywords == FILTER_OR) {
+					lfr.set_mode_disjunction();
+				}
+				if (_keywords.size() == 2) {
+					set_mode_conjunction();
+				}
+				_keywords.front()->filter_lines(&lfr);
+				_add_context.front()->filter_lines(&lfr);
 			}
-			_keywords.front()->filter_lines(&lfr);
-			_add_context.front()->filter_lines(&lfr);
 		}
-		lfr.insert(_pins);
+		lfr.insert(_ll->pins_locked());
 
 		vector<size_t> lines;
 		vector<string> data;
 
 		_total_lines = lfr.length();
 
+		lfr.lines(&lines);
+		_ll->recent_result_locked(lines);
+		lines.clear();
+
 		lfr.build_display(&lines, navi->cur(), radius);
-		_ll->get_lines(lines, &data);
+		_ll->get_lines_locked(lines, &data);
 		navi->set_view(lines, data);
 
 		set_formatting(lines, data, output);
@@ -97,12 +108,8 @@ public:
 	}
 
 	virtual void toggle_mode() {
-		if (_keywords.size() == 1) {
-			_filter_keywords = FILTER_NONE;
-			return;
-		}
 		++_filter_keywords;
-		_filter_keywords %= empty() ? 2 : 3;
+		_filter_keywords %= !multiple() ? 2 : 3;
 	}
 
 	virtual void set_mode_none() {
@@ -117,14 +124,12 @@ public:
 		_filter_keywords = FILTER_OR;
 	}
 
-	virtual void pin(size_t pos) {
-		_pins.insert(pos);
-	}
-
 	virtual string mode_string() const {
 		if (_filter_keywords == FILTER_NONE)
 			return "ALL";
-		if (_keywords.size() == 1)
+		if (_keywords.size() == 1 && _filter_keywords == FILTER_AND)
+			return "TAG";
+		if (_keywords.size() == 2 && _filter_keywords == FILTER_AND)
 			return "MATCH";
 		if (_filter_keywords == FILTER_AND)
 			return "AND";
@@ -175,11 +180,14 @@ protected:
 		return _keywords.size() == 1;
 	}
 
+	virtual bool multiple() const {
+		return _keywords.size() > 2;
+	}
+
 	LineFilterKeyword *_current_keyword;
 	list<unique_ptr<AbstractLineFilter>> _keywords;
 	vector<string> _keyword_vals;
 	list<unique_ptr<AbstractLineFilter>> _add_context;
-	set<size_t> _pins;
 	int _filter_keywords = 0;
 	LogLines* _ll;
 	size_t _total_lines;

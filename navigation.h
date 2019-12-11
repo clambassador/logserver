@@ -15,6 +15,10 @@ public:
 		_max_length = data[data.size() / 2].length();
 	}
 
+	virtual bool at_end() const {
+		return _cur == POS_END;
+	}
+
 	virtual void line_start() {
 		_tab = 0;
 	}
@@ -66,7 +70,6 @@ public:
 	}
 
 	virtual bool near_end(size_t size, size_t radius) const {
-		//if (cur() == POS_END) return true;
 		if (size - radius < cur()) return true;
 		return false;
 	}

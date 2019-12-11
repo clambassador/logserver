@@ -3,6 +3,8 @@
 
 #include "abstract_line_filter.h"
 
+#include "log_lines.h"
+
 class LineFilterTerminus : public AbstractLineFilter {
 public:
 	LineFilterTerminus() {}
