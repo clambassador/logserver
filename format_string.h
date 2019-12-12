@@ -9,6 +9,7 @@ using namespace std;
 class FormatString : public string {
 public:
 	FormatString() : string("") {}
+	virtual ~FormatString() {}
 
 	virtual void init(const string& val) {
 		assign(val);

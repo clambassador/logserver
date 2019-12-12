@@ -175,6 +175,8 @@ protected:
 		if (ch == KEY_END) _navi.end();
 		if (ch == KEY_SHOME) _navi.line_start();
 		if (ch == KEY_SEND) _navi.line_end();
+		if (ch == KEY_SRIGHT) _navi.goto_pos(_fr->find_next_match(_navi));
+		if (ch == KEY_SLEFT) _navi.goto_pos(_fr->find_prev_match(_navi));
 
 		if (_state == TYPE_MATCH) {
 			if (ch == 27) {

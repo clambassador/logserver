@@ -45,13 +45,17 @@ public:
 		_tab += 30;
 	}
 
-	virtual size_t tab() {
+	virtual void goto_pos(size_t pos) {
+		_tab = pos  - (pos % 30);
+	}
+
+	virtual size_t tab() const {
 		return _tab;
 	}
 
 	virtual void up() {
 		set(safe_up(midpos() - 1));
-	}
+	}	
 
 	virtual void down() {
 		set(safe_down(midpos() + 1));

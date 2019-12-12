@@ -138,6 +138,36 @@ public:
 		return "NO SUCH MODE";
 	}
 
+	// TODO tabstop of 30 needs to be consted
+	// TODO moving of tab width needs to be highlighted
+	// TODO if line is empty below it should just fill it
+	// TODO or if righthand side goes too far
+	virtual size_t find_next_match(const Navigation& navi) const {
+		size_t cur = navi.cur();
+		size_t tab = navi.tab();
+		size_t ret = string::npos;
+		for (auto &x : _keyword_vals) {
+			size_t i = _ll->find(cur, tab + 30, x);
+			if (i < ret) ret = i;			
+		}
+		if (ret == string::npos) return tab;
+		return ret;
+	}
+
+	virtual size_t find_prev_match(const Navigation& navi) const {
+		size_t cur = navi.cur();
+		size_t tab = navi.tab();
+		size_t ret = 0;
+		for (auto &x : _keyword_vals) {
+			size_t i = _ll->rfind(cur, tab, x);
+			assert(i == string::npos || i < tab);
+			if (i != string::npos && i > ret) ret = i;
+		}
+		if (ret == string::npos) return tab;
+		if (tab - ret > 30) return ret + 30;
+		return ret;
+	}
+
 protected:
 	virtual void set_line_position(vector<FormatString>* output, size_t tab) {
 		for (auto &x : *output) {
