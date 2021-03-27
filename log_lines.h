@@ -158,12 +158,12 @@ public:
 
 	virtual size_t find(size_t cur, size_t tab, const string& keyword) const {
 		unique_lock<mutex> ul(_m);
-		return _lines[cur].find(keyword, tab);		
+		return _lines[cur].find(keyword, tab);
 	}
 
 	virtual size_t rfind(size_t cur, size_t tab, const string& keyword) const {
 		unique_lock<mutex> ul(_m);
-		return _lines[cur].rfind(keyword, tab);		
+		return _lines[cur].rfind(keyword, tab);
 	}
 
 	virtual void save() const {

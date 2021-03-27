@@ -103,7 +103,7 @@ protected:
 		}
 		// BUG: redraw if near end of filter
 		//      this causes fast input to not redraw
-		//      
+		//
 		if (_navi.near_end(_N, RADIUS) && _ll->dirty()) {
 			return true;
 		}
