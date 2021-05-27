@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <csignal>
 
+#include "pp_log_lines.h"
 #include "log_lines.h"
 #include "interface.h"
 
@@ -20,7 +21,7 @@ int main(int argc, char** argv) {
 
 	if (argc == 2) {
 		fin.open(argv[1]);
-		ll.reset(new LogLines(fin));
+		ll.reset(new PPLogLines(fin));
 	} else {
 		int pipe_ends[2];
 		pipe(pipe_ends);
@@ -46,7 +47,7 @@ int main(int argc, char** argv) {
 			}
 		}
 		close(pipe_ends[1]);
-		ll.reset(new LogLines(pipe_ends[0]));
+		ll.reset(new PPLogLines(pipe_ends[0]));
 	}
 	Interface interface(ll.get());
 	interface.run();

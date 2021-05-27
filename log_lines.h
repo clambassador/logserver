@@ -200,6 +200,10 @@ public:
 		return _pins;
 	}
 
+	virtual bool eof() const {
+		return _eof;
+	}
+
 protected:
 	virtual bool match(const string& keyword,
 			   const string& line) const {
@@ -214,6 +218,7 @@ protected:
 	}
 
 	virtual void reader() {
+		_eof = false;
 		if (_fd > 0) {
 			stringstream ss;
 			while (!_exit) {
@@ -237,12 +242,14 @@ protected:
 				add_line(line);
 			}
 		}
+		_eof = true;
 	}
 
 	unique_ptr<thread> _reader_thread;
 	istream _in;
 	string _filename;
 	int _fd = 0;
+	bool _eof;
 	mutable unique_ptr<unique_lock<mutex>> _ul;
 	vector<string> _lines;
 	vector<size_t> _cur_view;

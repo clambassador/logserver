@@ -143,8 +143,10 @@ protected:
 		if (_state == COMMAND) {
 			ss << "[COMMAND]                    \t"
 			   << _fr->mode_string() << "  "
-			   << _fr->length() << " lines.  "
-			   << "   keywords: ";
+			   << _fr->length() << " lines";
+			if (_ll->eof()) ss << " (eof).";
+			else ss << ".";
+			ss << "   keywords: ";
 		} else if (_state == TYPE_MATCH) {
 			ss << "> ";
 			ss << _fr->current_keyword();
